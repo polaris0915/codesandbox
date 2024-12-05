@@ -1,0 +1,16 @@
+CreateDockerConfig:
+  # C++: "ubuntu:20.04" JAVA等其他语言可以之后配置就行，暂且就是支持C++
+  ImageName: "ubuntu:20.04"
+  # 本地需要挂在的目录，需要写一个绝对路径
+  HostMountDir: "/Users/alin-youlinlin/Desktop/polaris-all_projects/codesandbox/user_code"
+  # Docker中挂载的目录，也写成绝对路径
+  DockerMountDir: "/user_code"
+  # 创建容器时，容器的名称
+  ContainerName: "cpp-sandbox"
+  # 创建之后的容器需要执行的命令
+  InitContainerCmd:
+      - "bash"
+      - "-c"
+      - "apt-get update && apt-get install -y build-essential g++ vim"
+LoggerConfig:
+  LogPath: "./logger"
