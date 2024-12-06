@@ -36,7 +36,7 @@ func Init(mode string) {
 		encodeCaller = zapcore.ShortCallerEncoder
 	}
 	encoderConfig := zapcore.EncoderConfig{
-		// Keys can be anything except the empty string.
+		// Keys can be anything except the empty _string.
 		TimeKey:        "T",
 		LevelKey:       "L",
 		NameKey:        "N",
