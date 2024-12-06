@@ -9,6 +9,7 @@ import (
 var (
 	CreateDockerConfig createDockerConfig
 	LoggerConfig       loggerConfig
+	MysqlConfig        mysqlConfig
 )
 
 func Init() {
@@ -21,8 +22,9 @@ func Init() {
 	}
 	vp.UnmarshalKey("CreateDockerConfig", &CreateDockerConfig)
 	vp.UnmarshalKey("LoggerConfig", &LoggerConfig)
+	vp.UnmarshalKey("MysqlConfig", &MysqlConfig)
 
-	//fmt.Printf("%+v\n", CreateDockerConfig)
+	//fmt.Printf("MysqlConfig: %+v\n", MysqlConfig)
 }
 
 type createDockerConfig struct {
@@ -35,4 +37,9 @@ type createDockerConfig struct {
 
 type loggerConfig struct {
 	LogPath string `json:"logPath" mapstructure:"LogPath"`
+}
+
+type mysqlConfig struct {
+	MysqlDBName     string `json:"mysqlDBName" mapstructure:"MysqlDBName"`
+	MysqlDBPassword string `json:"mysqlDBPassword" mapstructure:"MysqlDBPassword"`
 }
