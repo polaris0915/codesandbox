@@ -39,7 +39,7 @@ func CreateContainer() {
 	// 创建容器
 	containerConfig := &container.Config{
 		Image: "ubuntu:20.04",
-		//Cmd:   []string{"bash", "-c", "while true; do sleep 1; done"},
+		//Cmd:   []_string{"bash", "-c", "while true; do sleep 1; done"},
 		Tty: true,
 	}
 

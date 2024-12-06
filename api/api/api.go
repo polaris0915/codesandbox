@@ -8,7 +8,16 @@ import (
 	"github.com/polaris/codesandbox/api/response"
 	"net/http"
 	"sync"
+	"time"
 )
+
+var (
+	CPP    = "c++"
+	Golang = "go"
+)
+
+// 执行代码沙箱的锁
+var mu sync.Mutex
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -45,6 +54,7 @@ func (wsConn *WsConnection) close() {
 // 接收循环
 func (wsConn *WsConnection) readLoop() {
 	for {
+		wsConn.Conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		_, message, err := wsConn.Conn.ReadMessage()
 		if err != nil {
 			fmt.Println(" wsConn.conn.ReadMessage错误: ", err)
@@ -63,11 +73,14 @@ func (wsConn *WsConnection) readLoop() {
 			break
 		case request.SubmitAct:
 			fmt.Printf("%s用户提交问题....\n", wsConn.Conn.RemoteAddr().String())
+			HandleSubmitAct(wsConn, message)
 			break
 		case request.RunAct:
 			fmt.Printf("%s用户调试问题....\n", wsConn.Conn.RemoteAddr().String())
 			HandleRunAct(wsConn, message)
 			break
+		default:
+			wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.ParamsError)
 		}
 	}
 }

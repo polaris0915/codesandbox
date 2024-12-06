@@ -27,6 +27,7 @@ var (
 	SystemError     = "SYSTEM_ERROR"
 	ParamsError     = "PARAMS_ERROR"
 	NoLanguageError = "NO_LANGUAGE_ERROR"
+	TestCasesError  = "TESTCASES_ERROR"
 )
 
 type WebSocketResponse interface {
@@ -81,15 +82,17 @@ func (r *RunningResponse) Response() {
 
 type AcceptResponse struct {
 	BaseResponse
+	Time int64 `json:"time"`
 }
 
-func NewAcceptResponse(conn *websocket.Conn, activity string) *AcceptResponse {
+func NewAcceptResponse(conn *websocket.Conn, activity string, time int64) *AcceptResponse {
 	return &AcceptResponse{
 		BaseResponse: BaseResponse{
 			Conn:     conn,
 			Activity: activity,
 			Status:   Accepted,
 		},
+		Time: time,
 	}
 }
 
@@ -150,20 +153,19 @@ func (r *CompileErrorResponse) Response() {
 
 type WrongAnswerResponse struct {
 	BaseResponse
-	StdErr             string `json:"stdErr"`
+	//StdErr             string `json:"stdErr"`
 	TestCaseInput      string `json:"testCaseInput"`
 	TestCaseOutput     string `json:"testCaseOutput"`
 	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewWrongAnswerResponse(conn *websocket.Conn, stdErr, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewWrongAnswerResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
 			Conn:     conn,
 			Activity: activity,
 			Status:   WrongAnswer,
 		},
-		StdErr:             stdErr,
 		TestCaseInput:      testCaseInput,
 		TestCaseOutput:     testCaseOutput,
 		TestCaseUserOutput: testCaseUserOutput,
@@ -177,20 +179,18 @@ func (r *WrongAnswerResponse) Response() {
 
 type PresentationErrorResponse struct {
 	BaseResponse
-	StdErr             string `json:"stdErr"`
 	TestCaseInput      string `json:"testCaseInput"`
 	TestCaseOutput     string `json:"testCaseOutput"`
 	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewPresentationErrorResponse(conn *websocket.Conn, activity, stdErr, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewPresentationErrorResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
 			Conn:     conn,
 			Activity: activity,
-			Status:   WrongAnswer,
+			Status:   PresentationError,
 		},
-		StdErr:             stdErr,
 		TestCaseInput:      testCaseInput,
 		TestCaseOutput:     testCaseOutput,
 		TestCaseUserOutput: testCaseUserOutput,
@@ -205,15 +205,21 @@ func (r *PresentationErrorResponse) Response() {
 
 type TimeoutResponse struct {
 	BaseResponse
+	TestCaseInput      string `json:"testCaseInput"`
+	TestCaseOutput     string `json:"testCaseOutput"`
+	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewTimeoutResponse(conn *websocket.Conn, activity string) *TimeoutResponse {
+func NewTimeoutResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *TimeoutResponse {
 	return &TimeoutResponse{
 		BaseResponse: BaseResponse{
 			Conn:     conn,
 			Activity: activity,
 			Status:   Timeout,
 		},
+		TestCaseInput:      testCaseInput,
+		TestCaseOutput:     testCaseOutput,
+		TestCaseUserOutput: testCaseUserOutput,
 	}
 }
 

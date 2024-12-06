@@ -23,6 +23,6 @@ type ProblemRun struct {
 	Activity string `json:"activity"`
 	Code     string `json:"code"`
 	Language string `json:"language"`
-	//QuestionId string `json:"questionId"`
+	//QuestionId _string `json:"questionId"`
 	Input string `json:"input"`
 }

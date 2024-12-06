@@ -14,3 +14,6 @@ CreateDockerConfig:
       - "apt-get update && apt-get install -y build-essential g++ vim"
 LoggerConfig:
   LogPath: "./logger"
+MysqlConfig:
+  MysqlDBName: "polaris-oj"
+  MysqlDBPassword: "ALin0915="
