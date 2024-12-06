@@ -34,8 +34,8 @@ type SandBox struct {
 		Available bool
 	}
 	ExcuteResult string
-	//FilterResult string
-	//Input       string
+	//FilterResult _string
+	//Input       _string
 	UsedTime    int64
 	ExcutedInfo struct {
 		Message string `json:"message"` // 用于说明 是否超时，内存是否超出限制，编译错误等等之类的
@@ -127,6 +127,9 @@ func (sandBox *SandBox) excuteCode(execConfig container.ExecOptions, input strin
 	if execInspect.ExitCode != 0 {
 		sandBox.Error = fmt.Errorf("命令执行失败，退出码: %d，错误信息: %s", execInspect.ExitCode, stderr.String())
 	}
+
+	// TODO: 这里需要这个
+	//fmt.Printf("sanbox::stdout.String(): %s\n", stdout.String())
 	return stdout.String()
 }
 
@@ -232,6 +235,7 @@ func (sandBox *SandBox) HandleExcuteCode(programPath, filePath, input string) (s
 	// TODO: 可能有问题
 	sandBox.ExcuteResult = strings.ReplaceAll(stdOut, "\r", "")
 	sandBox.ExcuteResult = strings.ReplaceAll(sandBox.ExcuteResult, input, "")
-	sandBox.ExcuteResult = strings.ReplaceAll(sandBox.ExcuteResult, "\n", "")
+	//sandBox.ExcuteResult = strings.ReplaceAll(sandBox.ExcuteResult, "\n", "")
+	// 得到的的用户的输出应该是原始，没有被污染过的用户的数据
 	return sandBox.ExcuteResult, sandBox.UsedTime, sandBox.Error
 }
