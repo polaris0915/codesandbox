@@ -6,7 +6,6 @@ import (
 	"github.com/polaris/codesandbox/router"
 	"github.com/polaris/codesandbox/settings"
 	"log"
-	"net/http"
 )
 
 // TODO: 1. 编写项目启动时获取g++环境的程序
@@ -33,8 +32,9 @@ func main() {
 	// 加载所有需要的数据库
 	model.InitAllDB()
 	// 注册路由
-	router.Init()
+	r := router.InitRouter()
 	// 启动服务
-	log.Fatal(http.ListenAndServe(":8010", nil))
+	//log.Fatal(http.ListenAndServe(":8010", nil))
+	log.Fatal(r.Run(":8010"))
 	//docker.CreateContainer()
 }
