@@ -1,4 +1,4 @@
-package api
+package act
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 
 func TestHandleRunAct(t *testing.T) {
 	// 连接到服务端 WebSocket
-	serverURL := "ws://localhost:8010/run-code"
+	serverURL := "ws://localhost:8010/api/act"
 	conn, _, err := websocket.DefaultDialer.Dial(serverURL, nil)
 	if err != nil {
 		log.Fatal("Error connecting to server:", err)
@@ -155,7 +155,7 @@ int main(void){
 
 func TestHandleSubmitAct(t *testing.T) {
 	// 连接到服务端 WebSocket
-	serverURL := "ws://localhost:8010/run-code"
+	serverURL := "ws://localhost:8010/api/act"
 	conn, _, err := websocket.DefaultDialer.Dial(serverURL, nil)
 	if err != nil {
 		log.Fatal("Error connecting to server:", err)

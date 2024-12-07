@@ -1,19 +1,17 @@
 package service
 
 import (
-	"github.com/gorilla/websocket"
 	"github.com/polaris/codesandbox/docker"
 	"sync"
 )
 
 type Service struct {
-	Conn     *websocket.Conn
 	Activity string
 	Mutex    *sync.Mutex
 }
 
-func NewService(conn *websocket.Conn, activity string, mutex *sync.Mutex) *Service {
-	return &Service{Conn: conn, Activity: activity, Mutex: mutex}
+func NewService(activity string, mutex *sync.Mutex) *Service {
+	return &Service{Activity: activity, Mutex: mutex}
 }
 
 /*
