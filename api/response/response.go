@@ -1,9 +1,5 @@
 package response
 
-import (
-	"github.com/gorilla/websocket"
-)
-
 // activity 代码沙箱返回给前端的活动状态
 var (
 	RunAct    = "RUN_CODE_ACTIVITY_STATUS"
@@ -31,53 +27,52 @@ var (
 )
 
 type WebSocketResponse interface {
-	Response()
+	Response() WebSocketResponse
 }
 
 type BaseResponse struct {
-	Conn     *websocket.Conn `json:"-"`
-	Activity string          `json:"activity"`
-	Status   string          `json:"status"`
+	Activity string `json:"activity"`
+	Status   string `json:"status"`
 }
 
 type PendingResponse struct {
 	BaseResponse
 }
 
-func NewPendingResponse(conn *websocket.Conn, activity string) *PendingResponse {
+func NewPendingResponse(activity string) *PendingResponse {
 	return &PendingResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
 			Activity: activity,
 			Status:   Pending,
 		},
 	}
 }
 
-func (r *PendingResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *PendingResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type RunningResponse struct {
 	BaseResponse
 }
 
-func NewRunningResponse(conn *websocket.Conn, activity string) *RunningResponse {
+func NewRunningResponse(activity string) *RunningResponse {
 	return &RunningResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
 			Activity: activity,
 			Status:   Running,
 		},
 	}
 }
 
-func (r *RunningResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *RunningResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type AcceptResponse struct {
@@ -85,10 +80,10 @@ type AcceptResponse struct {
 	Time int64 `json:"time"`
 }
 
-func NewAcceptResponse(conn *websocket.Conn, activity string, time int64) *AcceptResponse {
+func NewAcceptResponse(activity string, time int64) *AcceptResponse {
 	return &AcceptResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   Accepted,
 		},
@@ -96,10 +91,11 @@ func NewAcceptResponse(conn *websocket.Conn, activity string, time int64) *Accep
 	}
 }
 
-func (r *AcceptResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *AcceptResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type FinishedResponse struct {
@@ -108,10 +104,10 @@ type FinishedResponse struct {
 	StdOut string `json:"stdOut"`
 }
 
-func NewFinishedResponse(conn *websocket.Conn, activity, stdErr, stdOut string) *FinishedResponse {
+func NewFinishedResponse(activity, stdErr, stdOut string) *FinishedResponse {
 	return &FinishedResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   Finished,
 		},
@@ -120,11 +116,12 @@ func NewFinishedResponse(conn *websocket.Conn, activity, stdErr, stdOut string) 
 	}
 }
 
-func (r *FinishedResponse) Response() {
+func (r *FinishedResponse) Response() WebSocketResponse {
 
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type CompileErrorResponse struct {
@@ -133,10 +130,10 @@ type CompileErrorResponse struct {
 	StdOut string `json:"stdOut"`
 }
 
-func NewCompileErrorResponse(conn *websocket.Conn, activity, stdErr, stdOut string) *CompileErrorResponse {
+func NewCompileErrorResponse(activity, stdErr, stdOut string) *CompileErrorResponse {
 	return &CompileErrorResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   CompileError,
 		},
@@ -145,10 +142,11 @@ func NewCompileErrorResponse(conn *websocket.Conn, activity, stdErr, stdOut stri
 	}
 }
 
-func (r *CompileErrorResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *CompileErrorResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type WrongAnswerResponse struct {
@@ -159,10 +157,10 @@ type WrongAnswerResponse struct {
 	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewWrongAnswerResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewWrongAnswerResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   WrongAnswer,
 		},
@@ -172,9 +170,10 @@ func NewWrongAnswerResponse(conn *websocket.Conn, activity, testCaseInput, testC
 	}
 }
 
-func (r *WrongAnswerResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-	}
+func (r *WrongAnswerResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//}
+	return r
 }
 
 type PresentationErrorResponse struct {
@@ -184,10 +183,10 @@ type PresentationErrorResponse struct {
 	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewPresentationErrorResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewPresentationErrorResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   PresentationError,
 		},
@@ -197,10 +196,11 @@ func NewPresentationErrorResponse(conn *websocket.Conn, activity, testCaseInput,
 	}
 }
 
-func (r *PresentationErrorResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *PresentationErrorResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type TimeoutResponse struct {
@@ -210,10 +210,10 @@ type TimeoutResponse struct {
 	TestCaseUserOutput string `json:"testCaseUserOutput"`
 }
 
-func NewTimeoutResponse(conn *websocket.Conn, activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *TimeoutResponse {
+func NewTimeoutResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *TimeoutResponse {
 	return &TimeoutResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: activity,
 			Status:   Timeout,
 		},
@@ -223,48 +223,50 @@ func NewTimeoutResponse(conn *websocket.Conn, activity, testCaseInput, testCaseO
 	}
 }
 
-func (r *TimeoutResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *TimeoutResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type MemoryExceededResponse struct {
 	BaseResponse
 }
 
-func NewMemoryExceededResponse(conn *websocket.Conn, activity string) *MemoryExceededResponse {
+func NewMemoryExceededResponse(activity string) *MemoryExceededResponse {
 	return &MemoryExceededResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
 			Activity: activity,
 			Status:   MemoryExceeded,
 		},
 	}
 }
 
-func (r *MemoryExceededResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *MemoryExceededResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }
 
 type SystemErrorResponse struct {
 	BaseResponse
 }
 
-func NewSystemErrorResponse(conn *websocket.Conn, status string) *SystemErrorResponse {
+func NewSystemErrorResponse(status string) *SystemErrorResponse {
 	return &SystemErrorResponse{
 		BaseResponse: BaseResponse{
-			Conn:     conn,
+
 			Activity: ErrorAct,
 			Status:   status,
 		},
 	}
 }
 
-func (r *SystemErrorResponse) Response() {
-	if err := r.Conn.WriteJSON(r); err != nil {
-
-	}
+func (r *SystemErrorResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
 }

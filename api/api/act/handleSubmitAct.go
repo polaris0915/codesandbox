@@ -1,4 +1,4 @@
-package api
+package act
 
 import (
 	"encoding/json"
@@ -11,15 +11,15 @@ func HandleSubmitAct(wsConn *WsConnection, message []byte) {
 	submitCodeRequest := new(request.ProblemSubmit)
 	_ = json.Unmarshal(message, submitCodeRequest)
 	if submitCodeRequest.QuestionId == "" {
-		wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.ParamsError)
+		wsConn.OutChan <- response.NewSystemErrorResponse(response.ParamsError)
 		return
 	}
 	switch submitCodeRequest.Language {
 	case CPP:
-		service.NewService(wsConn.Conn, request.SubmitAct, &mu).SubmitCppCode(wsConn.OutChan, submitCodeRequest)
+		service.NewService(request.SubmitAct, &mu).SubmitCppCode(wsConn.OutChan, submitCodeRequest)
 		break
 	default:
-		wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.NoLanguageError)
+		wsConn.OutChan <- response.NewSystemErrorResponse(response.NoLanguageError)
 	}
 
 }

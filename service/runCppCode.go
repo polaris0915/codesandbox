@@ -27,17 +27,17 @@ func (s *Service) RunCppCode(outChan chan response.WebSocketResponse, runCodeReq
 	//	return
 	//}
 	var programPath, filePath string
-	if programPath, filePath = prepareCppCode(runCodeRequest.Code, s.Conn, outChan); programPath == "" {
+	if programPath, filePath = prepareCppCode(runCodeRequest.Code, outChan); programPath == "" {
 		return
 	}
-	outChan <- response.NewPendingResponse(s.Conn, response.RunAct)
+	outChan <- response.NewPendingResponse(response.RunAct)
 	// 如果有用户在占用docker代码沙箱，那么状态一直都是Pending
 	// 进行加锁
 	s.Mutex.Lock()
 	// 解锁
 	defer s.Mutex.Unlock()
 	// 执行单次c++代码
-	outChan <- response.NewRunningResponse(s.Conn, response.RunAct)
+	outChan <- response.NewRunningResponse(response.RunAct)
 	// 确保输入以`\n`结尾
 	_string.GetCorrectString(&runCodeRequest.Input)
 	res, usedTime, err := excuteRunCppCode(runCodeRequest.Input, programPath, filePath)
@@ -46,15 +46,15 @@ func (s *Service) RunCppCode(outChan chan response.WebSocketResponse, runCodeReq
 		logger.GetLogger().Error("代码沙箱执行出错: " + err.Error())
 		switch err.Error() {
 		case response.Timeout:
-			outChan <- response.NewTimeoutResponse(s.Conn, response.RunAct, runCodeRequest.Input, "", "")
+			outChan <- response.NewTimeoutResponse(response.RunAct, runCodeRequest.Input, "", "")
 			return
 		case response.MemoryExceeded:
-			outChan <- response.NewMemoryExceededResponse(s.Conn, response.RunAct)
+			outChan <- response.NewMemoryExceededResponse(response.RunAct)
 			return
 		default:
-			outChan <- response.NewSystemErrorResponse(s.Conn, response.SystemError)
+			outChan <- response.NewSystemErrorResponse(response.SystemError)
 			return
 		}
 	}
-	outChan <- response.NewFinishedResponse(s.Conn, response.RunAct, "", res)
+	outChan <- response.NewFinishedResponse(response.RunAct, "", res)
 }

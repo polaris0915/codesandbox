@@ -3,12 +3,11 @@ package service
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"github.com/polaris/codesandbox/api/response"
 	"os"
 )
 
-func prepareCppCode(code string, conn *websocket.Conn, outChan chan response.WebSocketResponse) (string, string) {
+func prepareCppCode(code string, outChan chan response.WebSocketResponse) (string, string) {
 	// 下载代码到文件中
 	os.MkdirAll("./user_code", os.ModePerm)
 	fileName := uuid.New().String()
@@ -16,7 +15,7 @@ func prepareCppCode(code string, conn *websocket.Conn, outChan chan response.Web
 	filePath := fmt.Sprintf("./user_code/%s.cpp", fileName)
 	err := os.WriteFile(filePath, []byte(code), os.ModePerm)
 	if err != nil {
-		outChan <- response.NewSystemErrorResponse(conn, response.SystemError)
+		outChan <- response.NewSystemErrorResponse(response.SystemError)
 		return "", ""
 	}
 	//// 编译c++代码 TODO: 上线服务器打开这个代码

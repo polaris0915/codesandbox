@@ -33,23 +33,23 @@ type judgeInfo struct {
 
 func (s *Service) SubmitCppCode(outChan chan response.WebSocketResponse, submitCodeRequest *request.ProblemSubmit) {
 	var programPath, filePath string
-	if programPath, filePath = prepareCppCode(submitCodeRequest.Code, s.Conn, outChan); programPath == "" {
+	if programPath, filePath = prepareCppCode(submitCodeRequest.Code, outChan); programPath == "" {
 		return
 	}
-	outChan <- response.NewPendingResponse(s.Conn, response.SubmitAct)
+	outChan <- response.NewPendingResponse(response.SubmitAct)
 	// 如果有用户在占用docker代码沙箱，那么状态一直都是Pending
 	// 进行加锁
 	s.Mutex.Lock()
 	// 解锁
 	defer s.Mutex.Unlock()
 	// 执行问题下的所有测试用例数据并同步到polaris-oj系统中
-	outChan <- response.NewRunningResponse(s.Conn, response.SubmitAct)
+	outChan <- response.NewRunningResponse(response.SubmitAct)
 	// 获取所有测试用例
 	var testCases []model.JudgeCase
 	judgeConfig := new(model.JudgeConfig)
 	var err error
 	if testCases, judgeConfig, err = getTestCasesAndJudgeConfig(submitCodeRequest.QuestionId); err != nil {
-		outChan <- response.NewSystemErrorResponse(s.Conn, response.TestCasesError)
+		outChan <- response.NewSystemErrorResponse(response.TestCasesError)
 		return
 	}
 	// 执行所有的测试用例
@@ -58,13 +58,13 @@ func (s *Service) SubmitCppCode(outChan chan response.WebSocketResponse, submitC
 		logger.GetLogger().Error("代码沙箱执行出错: " + err.Error())
 		switch err.Error() {
 		case response.Timeout:
-			outChan <- response.NewTimeoutResponse(s.Conn, response.SubmitAct, "", "", "")
+			outChan <- response.NewTimeoutResponse(response.SubmitAct, "", "", "")
 			return
 		case response.MemoryExceeded:
-			outChan <- response.NewMemoryExceededResponse(s.Conn, response.SubmitAct)
+			outChan <- response.NewMemoryExceededResponse(response.SubmitAct)
 			return
 		default:
-			outChan <- response.NewSystemErrorResponse(s.Conn, response.SystemError)
+			outChan <- response.NewSystemErrorResponse(response.SystemError)
 			return
 		}
 	}
@@ -72,13 +72,13 @@ func (s *Service) SubmitCppCode(outChan chan response.WebSocketResponse, submitC
 	_judgeInfo := new(judgeInfo)
 	switch checkOutputs(testCases, userOutputs, judgeConfig, _judgeInfo) {
 	case AC:
-		outChan <- response.NewAcceptResponse(s.Conn, response.SubmitAct, _judgeInfo.time)
+		outChan <- response.NewAcceptResponse(response.SubmitAct, _judgeInfo.time)
 	case Timeout:
-		outChan <- response.NewTimeoutResponse(s.Conn, response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
+		outChan <- response.NewTimeoutResponse(response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
 	case WrongAnswer:
-		outChan <- response.NewWrongAnswerResponse(s.Conn, response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
+		outChan <- response.NewWrongAnswerResponse(response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
 	case PresentationWrong:
-		outChan <- response.NewPresentationErrorResponse(s.Conn, response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
+		outChan <- response.NewPresentationErrorResponse(response.SubmitAct, _judgeInfo.testCaseInput, _judgeInfo.testCaseOutput, _judgeInfo.testCaseUserOutput)
 	}
 	// 同步判题结果的数据到polaris-oj
 

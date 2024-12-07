@@ -1,4 +1,4 @@
-package api
+package act
 
 import (
 	"encoding/json"
@@ -12,10 +12,10 @@ func HandleRunAct(wsConn *WsConnection, message []byte) {
 	_ = json.Unmarshal(message, runCodeRequest)
 	switch runCodeRequest.Language {
 	case CPP:
-		service.NewService(wsConn.Conn, request.RunAct, &mu).RunCppCode(wsConn.OutChan, runCodeRequest)
+		service.NewService(request.RunAct, &mu).RunCppCode(wsConn.OutChan, runCodeRequest)
 		break
 	default:
-		wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.NoLanguageError)
+		wsConn.OutChan <- response.NewSystemErrorResponse(response.NoLanguageError)
 	}
 
 }

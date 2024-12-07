@@ -1,11 +1,13 @@
-package api
+package act
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/polaris/codesandbox/api/request"
 	"github.com/polaris/codesandbox/api/response"
+	"github.com/polaris/codesandbox/logger"
 	"net/http"
 	"sync"
 	"time"
@@ -64,7 +66,7 @@ func (wsConn *WsConnection) readLoop() {
 		}
 		_request := new(request.WebSocketRequest)
 		if err := json.Unmarshal(message, _request); err != nil {
-			wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.ParamsError)
+			wsConn.OutChan <- response.NewSystemErrorResponse(response.ParamsError)
 			continue
 		}
 		switch _request.Activity {
@@ -80,7 +82,7 @@ func (wsConn *WsConnection) readLoop() {
 			HandleRunAct(wsConn, message)
 			break
 		default:
-			wsConn.OutChan <- response.NewSystemErrorResponse(wsConn.Conn, response.ParamsError)
+			wsConn.OutChan <- response.NewSystemErrorResponse(response.ParamsError)
 		}
 	}
 }
@@ -89,8 +91,12 @@ func (wsConn *WsConnection) readLoop() {
 func (wsConn *WsConnection) writeLoop() {
 	for {
 		select {
+		//case _response := <-wsConn.OutChan:
+		//	_response.Response()
 		case _response := <-wsConn.OutChan:
-			_response.Response()
+			if err := wsConn.Conn.WriteJSON(_response.Response()); err != nil {
+				logger.GetLogger().Errorln(err)
+			}
 		// 处理主动关闭连接
 		case <-wsConn.CloseChan:
 			wsConn.close()
@@ -122,4 +128,8 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%s用户连接已经准备就绪了\n", wsConn.Conn.RemoteAddr().String())
 	wg.Wait()
+}
+
+func GinWsHandler(c *gin.Context) {
+	WsHandler(c.Writer, c.Request)
 }
