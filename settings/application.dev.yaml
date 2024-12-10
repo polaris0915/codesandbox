@@ -1,14 +1,19 @@
-CreateDockerConfig:
-  # C++: "ubuntu:20.04" JAVA等其他语言可以之后配置就行，暂且就是支持C++
-  ImageName: "ubuntu:20.04"
-  # 本地需要挂在的目录，需要写一个绝对路径
-  HostMountDir: "/Users/alin-youlinlin/Desktop/polaris-all_projects/codesandbox/user_code"
-  # Docker中挂载的目录，也写成绝对路径
-  DockerMountDir: "/user_code"
-  # 创建容器时，容器的名称
-  ContainerName: "cpp-sandbox"
-  # 创建之后的容器需要执行的命令
-  InitContainerCmd:
+EnvConfig:
+  RootPath: "/Users/alin-youlinlin/Desktop/polaris-all_projects/codesandbox"
+ContainersConfig:
+  Cpp:
+    # C++: "ubuntu:20.04" JAVA等其他语言可以之后配置就行，暂且就是支持C++
+    ImageName: "ubuntu:20.04"
+    # 本地需要挂在的目录，需要写一个绝对路径
+    HostMountDir: "/Users/alin-youlinlin/Desktop/polaris-all_projects/codesandbox/user_code"
+    # Docker中挂载的目录，也写成绝对路径
+    DockerMountDir: "/user_code"
+    # 创建容器时，容器的名称
+    ContainerName: "cpp-sandbox"
+    # 容器ID
+    ContainerId: "a6f75d80f5e3"
+    # 创建之后的容器需要执行的命令
+    InitContainerCmd:
       - "bash"
       - "-c"
       - "apt-get update && apt-get install -y build-essential g++ vim"
@@ -17,3 +22,13 @@ LoggerConfig:
 MysqlConfig:
   MysqlDBName: "polaris-oj"
   MysqlDBPassword: "ALin0915="
+RemoteConfig:
+  # 远程平台开放获取提交问题信息的接口url
+  Url: ""
+  Method: ""
+  # 如果开启了Jwt，那么必须要配置好Url以及Method方法
+  JwtConfig:
+    # 需要和polaris-oj的题目平台的key一致
+    Key: "polaris-oj"
+    # 如果不需要校验用户的权限，这里写false
+    NeedAuth: false

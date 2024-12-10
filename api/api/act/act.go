@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/polaris/codesandbox/api"
 	"github.com/polaris/codesandbox/api/request"
 	"github.com/polaris/codesandbox/api/response"
 	"github.com/polaris/codesandbox/logger"
+	"github.com/polaris/codesandbox/middleware"
+	"github.com/polaris/codesandbox/settings"
 	"net/http"
 	"sync"
 	"time"
@@ -37,6 +40,9 @@ type WsConnection struct {
 	mutex     sync.Mutex // 避免重复关闭管道
 	isClosed  bool
 	CloseChan chan byte // 关闭通知
+
+	// 用户信息，只有在RemoteConfig中Jwt开启时，才会有用户信息
+	User *middleware.UserClaims
 }
 
 // 关闭连接
@@ -56,17 +62,17 @@ func (wsConn *WsConnection) close() {
 // 接收循环
 func (wsConn *WsConnection) readLoop() {
 	for {
-		wsConn.Conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+		wsConn.Conn.SetReadDeadline(time.Now().Add(33 * time.Second))
 		_, message, err := wsConn.Conn.ReadMessage()
 		if err != nil {
-			fmt.Println(" wsConn.conn.ReadMessage错误: ", err)
+			fmt.Printf("%s wsConn.conn.ReadMessage错误: %s\n", wsConn.Conn.RemoteAddr(), err.Error())
 			//wsConn.outChan <- response.NewSystemErrorResponse(wsConn.conn, response.SystemError)
-			//wsConn.close()
+			wsConn.close()
 			return
 		}
 		_request := new(request.WebSocketRequest)
 		if err := json.Unmarshal(message, _request); err != nil {
-			wsConn.OutChan <- response.NewSystemErrorResponse(response.ParamsError)
+			wsConn.OutChan <- response.NewSystemErrorResponse(api.ParamsError)
 			continue
 		}
 		switch _request.Activity {
@@ -82,7 +88,7 @@ func (wsConn *WsConnection) readLoop() {
 			HandleRunAct(wsConn, message)
 			break
 		default:
-			wsConn.OutChan <- response.NewSystemErrorResponse(response.ParamsError)
+			wsConn.OutChan <- response.NewSystemErrorResponse(api.ParamsError)
 		}
 	}
 }
@@ -104,7 +110,7 @@ func (wsConn *WsConnection) writeLoop() {
 	}
 }
 
-func WsHandler(w http.ResponseWriter, r *http.Request) {
+func WsHandler(w http.ResponseWriter, r *http.Request, user *middleware.UserClaims) {
 	var wg sync.WaitGroup
 	// 应答客户端告知升级连接为websocket
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -117,6 +123,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		OutChan:   make(chan response.WebSocketResponse, 10),
 		CloseChan: make(chan byte),
 		isClosed:  false,
+		User:      user,
 	}
 
 	// 读协程
@@ -131,5 +138,17 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GinWsHandler(c *gin.Context) {
-	WsHandler(c.Writer, c.Request)
+	if !settings.RemoteConfig.JwtConfig.NeedAuth {
+		WsHandler(c.Writer, c.Request, nil)
+		return
+	}
+	u, _ := c.Get("user")
+	user, ok := u.(*middleware.UserClaims)
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": api.UserInfoError,
+		})
+		return
+	}
+	WsHandler(c.Writer, c.Request, user)
 }

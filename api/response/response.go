@@ -1,30 +1,34 @@
 package response
 
-// activity 代码沙箱返回给前端的活动状态
-var (
-	RunAct    = "RUN_CODE_ACTIVITY_STATUS"
-	SubmitAct = "SUBMIT_CODE_ACTIVITY_STATUS"
-	ErrorAct  = "ERROR_ACTIVITY_STATUS"
+import (
+	"github.com/polaris/codesandbox/api"
+	"time"
 )
 
-// status
-var (
-	Pending = "PENDING"
-	Running = "RUNNING"
+// 用于实时反馈给用户
+type ExcutedResult struct {
+	TestCaseInput      string `json:"testCaseInput"`
+	TestCaseOutput     string `json:"testCaseOutput"`
+	TestCaseUserOutput string `json:"testCaseUserOutput"`
+	ExcutedStatus
+	StdErr string `json:"stdErr"`
+}
 
-	Accepted          = "ACCEPTED"
-	WrongAnswer       = "WRONG_ANSWER"
-	CompileError      = "COMPILE_ERROR"
-	PresentationError = "PRESENTATION_ERROR"
-	Finished          = "FINISHED"
-	Timeout           = "TIME_LIMIT_EXCEEDED"
-	MemoryExceeded    = "MEMORY_LIMIT_EXCEEDED"
-	// 系统错误
-	SystemError     = "SYSTEM_ERROR"
-	ParamsError     = "PARAMS_ERROR"
-	NoLanguageError = "NO_LANGUAGE_ERROR"
-	TestCasesError  = "TESTCASES_ERROR"
-)
+// 用户实时返回给远程题目平台
+type SyncBody struct {
+	UserId      string        `json:"userId"`
+	UserAccount string        `json:"userAccount"`
+	QuestionId  string        `json:"questionId"`
+	SubmitCode  string        `json:"submitCode"`
+	Language    string        `json:"language"`
+	JudgeInfo   ExcutedStatus `json:"judgeInfo"`
+}
+
+type ExcutedStatus struct {
+	Time        time.Duration `json:"time"`        // 所有测试用例总共花费的时间
+	Memory      int64         `json:"memory"`      // 所有测试用例总共使用的内存大小
+	JudgeResult string        `json:"judgeResult"` // 当前提交的判题结果
+}
 
 type WebSocketResponse interface {
 	Response() WebSocketResponse
@@ -35,6 +39,7 @@ type BaseResponse struct {
 	Status   string `json:"status"`
 }
 
+// Pending
 type PendingResponse struct {
 	BaseResponse
 }
@@ -43,7 +48,7 @@ func NewPendingResponse(activity string) *PendingResponse {
 	return &PendingResponse{
 		BaseResponse: BaseResponse{
 			Activity: activity,
-			Status:   Pending,
+			Status:   api.Pending,
 		},
 	}
 }
@@ -55,6 +60,7 @@ func (r *PendingResponse) Response() WebSocketResponse {
 	return r
 }
 
+// Running
 type RunningResponse struct {
 	BaseResponse
 }
@@ -63,7 +69,7 @@ func NewRunningResponse(activity string) *RunningResponse {
 	return &RunningResponse{
 		BaseResponse: BaseResponse{
 			Activity: activity,
-			Status:   Running,
+			Status:   api.Running,
 		},
 	}
 }
@@ -75,19 +81,24 @@ func (r *RunningResponse) Response() WebSocketResponse {
 	return r
 }
 
+// Accept
 type AcceptResponse struct {
 	BaseResponse
-	Time int64 `json:"time"`
+	ExcutedResult
 }
 
-func NewAcceptResponse(activity string, time int64) *AcceptResponse {
+func NewAcceptResponse(activity string, time time.Duration, memory int64) *AcceptResponse {
 	return &AcceptResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   Accepted,
+			Status:   api.Accepted,
 		},
-		Time: time,
+		ExcutedResult: ExcutedResult{
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+		},
 	}
 }
 
@@ -98,21 +109,25 @@ func (r *AcceptResponse) Response() WebSocketResponse {
 	return r
 }
 
+// Finished
 type FinishedResponse struct {
 	BaseResponse
-	StdErr string `json:"stdErr"`
-	StdOut string `json:"stdOut"`
+	ExcutedResult
 }
 
-func NewFinishedResponse(activity, stdErr, stdOut string) *FinishedResponse {
+func NewFinishedResponse(activity, stdOut string, time time.Duration, memory int64) *FinishedResponse {
 	return &FinishedResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   Finished,
+			Status:   api.Finished,
 		},
-		StdErr: stdErr,
-		StdOut: stdOut,
+		ExcutedResult: ExcutedResult{
+			TestCaseUserOutput: stdOut,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+		},
 	}
 }
 
@@ -126,19 +141,16 @@ func (r *FinishedResponse) Response() WebSocketResponse {
 
 type CompileErrorResponse struct {
 	BaseResponse
-	StdErr string `json:"stdErr"`
-	StdOut string `json:"stdOut"`
+	CompileError string `json:"stdErr"`
 }
 
-func NewCompileErrorResponse(activity, stdErr, stdOut string) *CompileErrorResponse {
+func NewCompileErrorResponse(activity, compileError string) *CompileErrorResponse {
 	return &CompileErrorResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   CompileError,
+			Status:   api.CompileError,
 		},
-		StdErr: stdErr,
-		StdOut: stdOut,
+		CompileError: compileError,
 	}
 }
 
@@ -151,22 +163,24 @@ func (r *CompileErrorResponse) Response() WebSocketResponse {
 
 type WrongAnswerResponse struct {
 	BaseResponse
-	//StdErr             string `json:"stdErr"`
-	TestCaseInput      string `json:"testCaseInput"`
-	TestCaseOutput     string `json:"testCaseOutput"`
-	TestCaseUserOutput string `json:"testCaseUserOutput"`
+	ExcutedResult
 }
 
-func NewWrongAnswerResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewWrongAnswerResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string, time time.Duration, memory int64) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   WrongAnswer,
+			Status:   api.WrongAnswer,
 		},
-		TestCaseInput:      testCaseInput,
-		TestCaseOutput:     testCaseOutput,
-		TestCaseUserOutput: testCaseUserOutput,
+		ExcutedResult: ExcutedResult{
+			TestCaseInput:      testCaseInput,
+			TestCaseOutput:     testCaseOutput,
+			TestCaseUserOutput: testCaseUserOutput,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+		},
 	}
 }
 
@@ -178,21 +192,24 @@ func (r *WrongAnswerResponse) Response() WebSocketResponse {
 
 type PresentationErrorResponse struct {
 	BaseResponse
-	TestCaseInput      string `json:"testCaseInput"`
-	TestCaseOutput     string `json:"testCaseOutput"`
-	TestCaseUserOutput string `json:"testCaseUserOutput"`
+	ExcutedResult
 }
 
-func NewPresentationErrorResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *WrongAnswerResponse {
+func NewPresentationErrorResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string, time time.Duration, memory int64) *WrongAnswerResponse {
 	return &WrongAnswerResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   PresentationError,
+			Status:   api.PresentationError,
 		},
-		TestCaseInput:      testCaseInput,
-		TestCaseOutput:     testCaseOutput,
-		TestCaseUserOutput: testCaseUserOutput,
+		ExcutedResult: ExcutedResult{
+			TestCaseInput:      testCaseInput,
+			TestCaseOutput:     testCaseOutput,
+			TestCaseUserOutput: testCaseUserOutput,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+		},
 	}
 }
 
@@ -205,21 +222,24 @@ func (r *PresentationErrorResponse) Response() WebSocketResponse {
 
 type TimeoutResponse struct {
 	BaseResponse
-	TestCaseInput      string `json:"testCaseInput"`
-	TestCaseOutput     string `json:"testCaseOutput"`
-	TestCaseUserOutput string `json:"testCaseUserOutput"`
+	ExcutedResult
 }
 
-func NewTimeoutResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string) *TimeoutResponse {
+func NewTimeoutResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string, time time.Duration, memory int64) *TimeoutResponse {
 	return &TimeoutResponse{
 		BaseResponse: BaseResponse{
-
 			Activity: activity,
-			Status:   Timeout,
+			Status:   api.Timeout,
 		},
-		TestCaseInput:      testCaseInput,
-		TestCaseOutput:     testCaseOutput,
-		TestCaseUserOutput: testCaseUserOutput,
+		ExcutedResult: ExcutedResult{
+			TestCaseInput:      testCaseInput,
+			TestCaseOutput:     testCaseOutput,
+			TestCaseUserOutput: testCaseUserOutput,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+		},
 	}
 }
 
@@ -232,18 +252,59 @@ func (r *TimeoutResponse) Response() WebSocketResponse {
 
 type MemoryExceededResponse struct {
 	BaseResponse
+	ExcutedResult
 }
 
-func NewMemoryExceededResponse(activity string) *MemoryExceededResponse {
+func NewMemoryExceededResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string, time time.Duration, memory int64) *MemoryExceededResponse {
 	return &MemoryExceededResponse{
 		BaseResponse: BaseResponse{
 			Activity: activity,
-			Status:   MemoryExceeded,
+			Status:   api.MemoryExceeded,
+		},
+		ExcutedResult: ExcutedResult{
+			TestCaseInput:      testCaseInput,
+			TestCaseOutput:     testCaseOutput,
+			TestCaseUserOutput: testCaseUserOutput,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
 		},
 	}
 }
 
 func (r *MemoryExceededResponse) Response() WebSocketResponse {
+	//if err := r.Conn.WriteJSON(r); err != nil {
+	//
+	//}
+	return r
+}
+
+type RunTimeErrorResponse struct {
+	BaseResponse
+	ExcutedResult
+}
+
+func NewRunTimeErrorResponse(activity, testCaseInput, testCaseOutput, testCaseUserOutput string, time time.Duration, memory int64, stdErr string) *RunTimeErrorResponse {
+	return &RunTimeErrorResponse{
+		BaseResponse: BaseResponse{
+			Activity: activity,
+			Status:   api.RunTimeError,
+		},
+		ExcutedResult: ExcutedResult{
+			TestCaseInput:      testCaseInput,
+			TestCaseOutput:     testCaseOutput,
+			TestCaseUserOutput: testCaseUserOutput,
+			ExcutedStatus: ExcutedStatus{
+				Time:   time,
+				Memory: memory,
+			},
+			StdErr: stdErr,
+		},
+	}
+}
+
+func (r *RunTimeErrorResponse) Response() WebSocketResponse {
 	//if err := r.Conn.WriteJSON(r); err != nil {
 	//
 	//}
@@ -257,8 +318,7 @@ type SystemErrorResponse struct {
 func NewSystemErrorResponse(status string) *SystemErrorResponse {
 	return &SystemErrorResponse{
 		BaseResponse: BaseResponse{
-
-			Activity: ErrorAct,
+			Activity: api.SystemError,
 			Status:   status,
 		},
 	}

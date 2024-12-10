@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/polaris/codesandbox/api/api/act"
+	"github.com/polaris/codesandbox/middleware"
 	"net/http"
 )
 
@@ -18,7 +19,7 @@ func InitRouter() *gin.Engine {
 	root := r.Group("/api")
 	{
 		// Authorization required and websocket request
-		w := root.Group("/")
+		w := root.Group("/", middleware.AuthRequired())
 		{
 			act.InitActRouter(w)
 		}
